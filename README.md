@@ -40,7 +40,7 @@ npm install
 npm run dev
 ```
 
-The server seeds the database automatically on first run. It only does this once — if the collections already have data it skips it. You can reset back to the original mock data anytime with the Reset button in the app, or by hitting `POST /reset`, or by running `npm run seed:reset` in the server folder.
+The server seeds the database automatically on first run. It only does this once. If the collections already have data it skips it. You can reset back to the original mock data anytime with the Reset button in the app, or by hitting `POST /reset`, or by running `npm run seed:reset` in the server folder.
 
 The Vite dev proxy forwards `/students`, `/tasks`, and `/reset` to the backend so the browser never has to deal with CORS. There's one small thing worth knowing: because `/students/:id` is both a frontend route and an API prefix, the proxy checks the `Accept` header. A fetch call gets proxied to the API, but if you type `/students/stu_002` directly into the browser URL bar it loads the React page correctly instead of hitting the API.
 
@@ -124,11 +124,11 @@ Wipes all three collections and re-inserts the original mock data. Returns `{ "o
 
 The backend follows a layered pattern: routes handle the HTTP stuff, services hold the actual logic, models define the database schemas, and the data folder has the mock data and seeding.
 
-The reason for splitting it this way is that each layer ends up with a single clear job. Routes only care about parsing a request and sending a response. They don't contain any business logic at all — they just call a service function and either send back what it returns or respond with an appropriate error. The service layer is where the real work happens: querying the database, calculating urgency, sorting tasks, building the aggregated response. The models are just schema definitions.
+The reason for splitting it this way is that each layer ends up with a single clear job. Routes only care about parsing a request and sending a response. They don't contain any business logic at all. They just call a service function and either send back what it returns or respond with an appropriate error. The service layer is where the real work happens: querying the database, calculating urgency, sorting tasks, building the aggregated response. The models are just schema definitions.
 
 The practical benefit is that you can change one layer without touching anything else. If you need to swap the data source from MongoDB to PostgreSQL, you change the service layer and nothing in the routes needs to know about it. If you want to change how urgency is calculated, you go to `services/actionCenter.ts` and that is the only place.
 
-One specific decision worth explaining is putting all the derivations on the server. Fields like `isOverdue`, `urgency`, and `unreadMessagesCount` are not stored in the database — they get computed fresh on every request. I made that call because they are genuinely business rules, not just presentation logic. If they lived in the frontend then every client would need to implement the same calculation, and if the rule changed you would have to update multiple places. On the server there is one function, one place to change, and the `today` parameter is injected so you can test the logic against any date without touching the system clock.
+One specific decision worth explaining is putting all the derivations on the server. Fields like `isOverdue`, `urgency`, and `unreadMessagesCount` are not stored in the database. They get computed fresh on every request. I made that call because they are genuinely business rules, not just presentation logic. If they lived in the frontend then every client would need to implement the same calculation, and if the rule changed you would have to update multiple places. On the server there is one function, one place to change, and the `today` parameter is injected so you can test the logic against any date without touching the system clock.
 
 The action-center endpoint deliberately returns everything for one student in a single aggregated response rather than making the client fetch student, tasks, and messages separately. For a page that needs all three, a single round-trip is just faster and the code on the frontend side is much simpler.
 
@@ -164,7 +164,7 @@ There was one wrinkle: `/students` is both a frontend route prefix and an API pa
 
 ```
 index.ts              entry point: loads env, connects to MongoDB, seeds if empty, starts listening
-app.ts                Express app factory — separate from index.ts so tests can import it cleanly
+app.ts                Express app factory, separate from index.ts so tests can import it cleanly
 logger.ts             pino logger configuration
 db/
   connection.ts       Mongoose connect function
