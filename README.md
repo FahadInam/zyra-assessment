@@ -12,56 +12,48 @@ The design is based on [Zyra's counselor dashboard](https://www.zyra-ai.com/part
 
 ## Getting it running
 
-You need Node 18+. For the database you have two options, pick whichever is easier.
+You need Node 18+. The app uses MongoDB for the database — you can get a free one from Atlas in a few minutes.
 
-**Option A: local MongoDB with Docker (recommended for quick setup)**
+**Step 1: get a MongoDB connection string**
 
-No account needed. Just have Docker installed and run this from the repo root:
+Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas) and sign up for free. Create a cluster (pick the free M0 tier), create a database user with a username and password, allow access from anywhere under Network Access (0.0.0.0/0 for development), then hit Connect and copy the connection string. It looks like this:
 
-```bash
-docker compose up -d
+```
+mongodb+srv://youruser:yourpassword@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
 ```
 
-That starts a MongoDB container on port 27017. Then copy the env file:
-
-```bash
-cp server/.env.example server/.env
-```
-
-The default `MONGODB_URI` in `.env.example` already points to `localhost:27017` so you don't need to change anything.
-
-**Option B: free MongoDB Atlas cluster**
-
-Sign up at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas), create a free M0 cluster, copy the connection string, then:
+**Step 2: create your env file**
 
 ```bash
 cp server/.env.example server/.env
-# open server/.env, uncomment the Atlas line, and paste your connection string
 ```
 
-**Once you have the env file set up, install and run:**
+Open `server/.env` and replace the placeholder with your connection string. Add the database name before the `?` so it looks like:
+
+```
+MONGODB_URI=mongodb+srv://youruser:yourpassword@cluster0.xxxxx.mongodb.net/action-center?retryWrites=true&w=majority
+PORT=4000
+```
+
+The `.env` file is gitignored so it will never be committed or pushed.
+
+**Step 3: install and run**
 
 ```bash
 npm run install:all
 npm run dev
 ```
 
-This starts the API on port 4000 and the frontend on port 5173 at the same time using `concurrently`. Logs come out prefixed with `[server]` or `[client]` so you can tell them apart.
+This starts the API on port 4000 and the frontend on port 5173 at the same time. The server seeds the database with the mock data on the first run and skips it on every run after that.
 
-The server seeds the database automatically on first run. It only does this once. If the collections already have data it skips it. You can reset back to the original mock data anytime with the Reset button in the app, or by hitting `POST /reset`, or by running `npm run seed:reset` in the server folder.
-
-**Or run them separately:**
+Or if you prefer two separate terminals:
 
 ```bash
 # Terminal 1
-cd server
-npm install
-npm run dev
+cd server && npm install && npm run dev
 
 # Terminal 2
-cd client
-npm install
-npm run dev
+cd client && npm install && npm run dev
 ```
 
 The Vite dev proxy forwards `/students`, `/tasks`, and `/reset` to the backend so the browser never has to deal with CORS. There's one small thing worth knowing: because `/students/:id` is both a frontend route and an API prefix, the proxy checks the `Accept` header. A fetch call gets proxied to the API, but if you type `/students/stu_002` directly into the browser URL bar it loads the React page correctly instead of hitting the API.
