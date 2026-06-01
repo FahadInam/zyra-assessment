@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Zyra — teal-forward design tokens (Tailwind v4 @theme)
+   Exposes utilities like bg-brand, text-ink, rounded-card, etc.
+   ============================================================ */
+@theme {
+  /* Surfaces */
+  --color-bg: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f8fc;
+
+  /* Text */
+  --color-ink: #11142a; /* headings */
+  --color-body: #2a2f45; /* body */
+  --color-muted: #5a6178; /* secondary */
+  --color-faint: #8b91a6; /* tertiary */
+
+  /* Brand — blue */
+  --color-brand: #3a5bff;
+  --color-brand-strong: #2c46e0;
+  --color-brand-deep: #1f37c4;
+  --color-brand-soft: #eaeeff;
+  --color-brand-tint: #f3f5ff;
+
+  /* Lines */
+  --color-line: #e7e9f2;
+  --color-line-strong: #d7dae8;
+
+  /* Status / urgency palette */
+  --color-urgent: #e5484d;
+  --color-urgent-soft: #fdecec;
+  --color-high: #ef8a17;
+  --color-high-soft: #fdf1e1;
+  --color-high-ink: #b45309;
+  --color-medium: #2f6df6;
+  --color-medium-soft: #e7f0fe;
+  --color-low: #12a594;
+  --color-low-soft: #e3f7f3;
+
+  /* Radii */
+  --radius-card: 20px;
+
+  /* Fonts */
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Shadows */
+  --shadow-soft: 0 1px 2px rgba(12, 33, 29, 0.04);
+  --shadow-card: 0 10px 30px -16px rgba(12, 33, 29, 0.22);
+  --shadow-pop: 0 28px 70px -30px rgba(12, 33, 29, 0.34);
+
+  /* Brand ring for focus */
+  --color-brand-ring: rgba(58, 91, 255, 0.26);
+
+  /* Animations */
+  --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-chat-in: chat-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-drawer-in: drawer-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade: fade 0.2s ease both;
+  --animate-shimmer: shimmer 1.3s infinite linear;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes chat-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes drawer-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -460px 0; }
+  100% { background-position: 460px 0; }
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+@layer base {
+  * { box-sizing: border-box; }
+
+  html, body, #root {
+    margin: 0;
+    height: 100%;
+    overflow: hidden; /* app-shell owns scrolling via internal panes */
+  }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--color-body);
+    background:
+      radial-gradient(1100px 600px at 100% -10%, var(--color-brand-soft) 0%, transparent 55%),
+      radial-gradient(900px 520px at -10% 0%, #e8fbf7 0%, transparent 52%),
+      var(--color-bg);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--color-ink);
+  }
+
+  button { font-family: inherit; cursor: pointer; }
+  input { font-family: inherit; }
+
+  ::selection { background: var(--color-brand-ring); }
+}
+
+/* ============================================================
+   Small reusable component classes for genuinely complex bits
+   (idiomatic Tailwind: keep these out of markup)
+   ============================================================ */
+@layer components {
+  .skel {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-muted) 25%,
+      #e8f0ee 50%,
+      var(--color-surface-muted) 75%
+    );
+    background-size: 920px 100%;
+    animation: var(--animate-shimmer);
+    border-radius: 10px;
+  }
+
+  /* Native select with custom chevron */
+  .status-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a6e6a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+}
+
+@layer utilities {
+  /* Thin, subtle scrollbars */
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-safe-only { animation: none !important; }
+  }
+}
