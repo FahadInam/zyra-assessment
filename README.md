@@ -154,24 +154,6 @@ The task status update is handled as an optimistic mutation, which is the right 
 
 Redux would have been significant overkill. The only shared client-side state in this app is the task filter chip selection, which is a single string. Zustand handles that in about 10 lines and costs nothing in bundle size or cognitive overhead.
 
-### Why Zustand and not Context
-
-React Context works fine for simple shared state but has a well-known performance problem: every component that consumes a context re-renders whenever anything in that context changes, even if the part they care about did not change. Zustand uses selector functions so each component only re-renders when its specific slice of state changes. For something as small as a task filter this doesn't matter much in practice, but Zustand also has a nicer API and adds almost no bundle size, so there is really no downside.
-
-### Why Tailwind v4 and not plain CSS or a component library
-
-We previously had around 1000 lines of hand-written CSS in two files. The problem with that is you end up with scattered magic numbers, duplicated color values, and no enforced relationship between related styles. Tailwind solves this by centralising all the design tokens in one place (the `@theme` block in `styles/index.css`) and then consuming them as utility classes throughout the components. Change `--color-brand` once and it updates everywhere in the codebase.
-
-A component library like Shadcn or Chakra would have been faster initially but would have made it much harder to match the Zyra design exactly. The design is specific enough that custom components made more sense.
-
-### Why real routing (React Router) instead of a view state flag
-
-The original version used a local `view: "students" | "detail"` flag to switch between the grid and the detail page. This meant that `/students/stu_002` typed directly into the browser would return a 404 from the Express server, browser back/forward didn't work, and the action-center query fired on page load even when you were on the grid and had no student selected.
-
-Proper routing with React Router v6 fixes all three. The student id now lives in the URL, which means detail pages are bookmarkable and refreshable, the browser back button works naturally, and the `useActionCenter` hook only mounts when the `/students/:studentId` route is active so there are no wasted requests.
-
-There was one wrinkle: `/students` is both a frontend route prefix and an API path. The Vite proxy is configured to forward to the API for fetch requests but return `index.html` for browser navigations, keyed on the `Accept` header. Fetch calls send `Accept: */*`, browser navigations send `Accept: text/html`.
-
 ### Folder structure
 
 **Backend (`server/src`)**
