@@ -156,86 +156,16 @@ Wipes all three collections and re-inserts the original mock data. Returns `{ "o
 ### System overview
 
 ```mermaid
-graph TB
-    subgraph Browser["Browser — React App (port 5173)"]
-        direction TB
-        Router["React Router v6\nURL routing /  and  /students/:id"]
-        RQ["TanStack React Query\nServer state · caching · optimistic updates"]
-        Zustand["Zustand\nUI state — task filter"]
-        SSEHook["useSSE hook\nEventSource — listens for live task changes"]
-    end
+graph LR
+    Browser["Browser\nReact · React Query · Zustand"]
+    API["Express API\nRoutes · Services"]
+    MongoDB[("MongoDB\nStudents · Tasks · Messages")]
+    Redis[("Redis\nCache · Pub-Sub")]
 
-    subgraph API["Express API (port 4000)"]
-        direction TB
-        MW["Middleware\nCORS · JSON parser"]
-        Routes["Routes\n/students · /students/:id/action-center\n/tasks/:id/status · /events/:id · /reset"]
-        Services["Services\naggregation · urgency · sorting\nRedis cache read/write · pub-sub publish"]
-    end
-
-    subgraph Storage["Data Layer"]
-        Mongo[("MongoDB Atlas\nStudents · Tasks · Messages")]
-        Redis[("Redis — Upstash\nRoster cache · Pub-Sub channels")]
-    end
-
-    Router -->|"HTTP fetch"| Routes
-    Routes --> Services
-    Services -->|"read / write"| Mongo
-    Services -->|"cache GET·SET·DEL\npublish events"| Redis
-    SSEHook -->|"GET /events/:id\nlong-lived HTTP connection"| Routes
-    Redis -->|"pub-sub message"| Routes
-    Routes -->|"data: event"| SSEHook
-    SSEHook -->|"invalidateQueries"| RQ
-```
-
-### Real-time task update flow
-
-This shows what happens across two open browser tabs when one counselor updates a task status.
-
-```mermaid
-sequenceDiagram
-    participant A as Tab A (updates task)
-    participant API as Express API
-    participant DB as MongoDB
-    participant Redis as Redis
-    participant B as Tab B (watching same student)
-
-    Note over B,API: Tab B already connected via GET /events/stu_001 (SSE)
-
-    A->>API: PATCH /tasks/tsk_001/status {status:"completed"}
-    API->>DB: findByIdAndUpdate(tsk_001)
-    DB-->>API: updated task
-    API->>Redis: DEL "roster" (invalidate cached student grid)
-    API->>Redis: PUBLISH "student:stu_001" {type:"task_updated"}
-    API-->>A: 200 OK — updated task
-
-    Redis-->>API: subscriber receives message
-    API-)B: data: {type:"task_updated", taskId:"tsk_001"}
-
-    Note over B: useSSE onmessage fires
-    B->>API: GET /students/stu_001/action-center (React Query refetch)
-    API->>DB: fetch fresh tasks + messages
-    DB-->>API: updated data
-    API-->>B: taskSummary.completed +1, urgency recalculated
-
-    Note over B: UI updates automatically — no refresh needed
-```
-
-### Caching flow
-
-```mermaid
-flowchart LR
-    Client([Browser]) -->|GET /students| API[Express API]
-    API -->|redis.get roster| Redis[(Redis)]
-    Redis -->|cache HIT — return JSON| API
-    API -->|respond in ~1ms| Client
-
-    Redis -->|cache MISS or expired| Fallback[Query MongoDB]
-    Fallback -->|aggregate all students| API
-    API -->|redis.setex roster 60s| Redis
-    API -->|respond with fresh data| Client
-
-    TaskUpdate([PATCH /tasks]) -->|on any task status change| Invalidate[redis.del roster]
-    Invalidate --> Redis
+    Browser -->|HTTP| API
+    API -->|read / write| MongoDB
+    API -->|cache · events| Redis
+    Redis -->|SSE push| Browser
 ```
 
 ### Why this backend structure
