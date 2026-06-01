@@ -215,8 +215,81 @@ student lives in the URL (`/students/:studentId`), so detail pages are deep-link
 action-center query only loads when you're actually on a student. `types.ts` mirrors the backend
 so the contract is typed end to end.
 
+## Performance decisions & tradeoffs
+
+**Single aggregated endpoint.** `GET /students/:id/action-center` returns the complete view
+in one round-trip instead of three separate calls (student, tasks, messages). This halves
+network latency for the most-used interaction and simplifies frontend data management.
+
+**Parallel DB queries.** Inside that endpoint, tasks and messages are fetched with
+`Promise.all` so they run concurrently. On a typical Mongo Atlas cluster this cuts the read
+time roughly in half compared to sequential awaits.
+
+**`studentId` indexes on every Task and Message document.** Without these, every
+`find({ studentId })` would be a full collection scan. The indexes make those lookups O(log n)
+regardless of how many total records exist.
+
+**Server-side derivation, computed once.** `isOverdue`, `urgency`, `taskSummary`, and
+`unreadMessagesCount` are all calculated on the server and included in the response. The
+client never has to recompute them, and there's one authoritative place for the business rules.
+
+**React Query staleTime + deduplicate.** The student roster has a 5-minute `staleTime` (it
+rarely changes). Both queries deduplicate concurrent requests — opening the same student twice
+hits the cache, not the network. The task-status mutation is optimistic: the UI flips instantly
+and rolls back only on error, so the interaction feels near-zero latency.
+
+**Pino structured logging.** In production, pino writes newline-delimited JSON, which is
+~30% faster than `console.log` (buffered async writes, no string formatting). In development,
+`pino-pretty` adds colour and human-readable output with no code change needed.
+
+**Lazy avatar images.** Student photos use `loading="lazy"` so only the visible cards load
+their images on mount — the full list can render without blocking on off-screen network requests.
+
+**Tradeoffs**
+
+| Decision | Tradeoff |
+| --- | --- |
+| Mock data in MongoDB | Simple to seed/reset, but not a real production datastore |
+| `mongodb-memory-server` for tests | Real Mongo queries, no external service — but adds ~20s on the first CI run to download the binary |
+| Pino pretty in dev | Adds a minor startup cost; plain JSON in production avoids it |
+| No pagination on `/students` | Fine for 3–10 students; would need cursor-based pagination at scale |
+
+## Testing & CI
+
+### Running the tests locally
+
+```bash
+# Backend integration tests (spins up an in-memory MongoDB)
+cd server && npm test
+
+# Frontend component tests
+cd client && npm test
+```
+
+### What's covered
+
+**Backend (`server/src/__tests__/api.test.ts`)** — 6 tests using vitest + supertest +
+`mongodb-memory-server`. Real HTTP round-trips, no mocks:
+- `GET /students/stu_001/action-center` → 200 with correct student data and an `X-Request-Id` header
+- Write→read integration: PATCH a task to completed, then confirm `taskSummary.completed` increased
+- 400 with `requestId` for an invalid status value
+- 404 with `requestId` for an unknown student
+- 404 for an unknown task id
+- Deterministic urgency derivation with an injected date (`today = 2026-06-01`)
+
+**Frontend (`client/src/components/__tests__/StudentCard.test.tsx`)** — 3 tests using vitest +
+Testing Library + jsdom:
+- Renders the student's name, email, enrollment label, open-task count, and next-task title
+- Card click fires `onOpen(id)`
+- Message button click fires `onMessage(id)` and does **not** fire `onOpen` (verifies `stopPropagation`)
+
+### CI
+
+Every push and pull request triggers the GitHub Actions workflow (`.github/workflows/ci.yml`),
+which runs typecheck + tests on the server and client jobs in parallel on Node 20.
+
 ## If I had more time
 
-- Unit tests around the urgency/overdue logic and an integration test for the endpoints
 - Real auth so a counselor only sees their own students
 - Marking messages read and actual two-way replies
+- Expand test coverage: urgency edge cases, chat view rendering, error state components

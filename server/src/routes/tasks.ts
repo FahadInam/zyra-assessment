@@ -16,14 +16,26 @@ router.patch("/tasks/:taskId/status", async (req, res, next) => {
     if (!isValidStatus(status)) {
       return res
         .status(400)
-        .json(errorBody("INVALID_STATUS", `"status" must be one of: ${TASK_STATUSES.join(", ")}.`));
+        .json(
+          errorBody(
+            "INVALID_STATUS",
+            `"status" must be one of: ${TASK_STATUSES.join(", ")}.`,
+            String(req.id),
+          ),
+        );
     }
 
     const updated = await updateTaskStatus(req.params.taskId, status);
     if (!updated) {
       return res
         .status(404)
-        .json(errorBody("TASK_NOT_FOUND", `No task found with id "${req.params.taskId}".`));
+        .json(
+          errorBody(
+            "TASK_NOT_FOUND",
+            `No task found with id "${req.params.taskId}".`,
+            String(req.id),
+          ),
+        );
     }
 
     return res.json(updated);

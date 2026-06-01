@@ -10,7 +10,13 @@ router.get("/students/:id/action-center", async (req, res, next) => {
     if (!result) {
       return res
         .status(404)
-        .json(errorBody("STUDENT_NOT_FOUND", `No student found with id "${req.params.id}".`));
+        .json(
+          errorBody(
+            "STUDENT_NOT_FOUND",
+            `No student found with id "${req.params.id}".`,
+            String(req.id),
+          ),
+        );
     }
     return res.json(result);
   } catch (err) {
