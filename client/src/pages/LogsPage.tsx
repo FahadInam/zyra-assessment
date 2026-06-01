@@ -112,7 +112,6 @@ export function LogsPage() {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["logs", limit],
     queryFn: () => fetchLogs(limit),
-    refetchInterval: 5000, // auto-refresh every 5s
   });
 
   const entries = (data?.entries ?? []).filter(
@@ -128,7 +127,6 @@ export function LogsPage() {
             <h1 className="text-xl tracking-tight">Request Logs</h1>
             <p className="text-[13px] text-muted">
               Live view of <code className="rounded bg-surface-muted px-1 py-0.5 text-[12px]">server/logs/app.log</code>
-              {" "}· auto-refreshes every 5s
             </p>
           </div>
           <div className="flex items-center gap-2.5">
