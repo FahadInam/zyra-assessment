@@ -28,19 +28,22 @@ function LogsLink() {
   );
 }
 
-/** Route-aware top bar: brand + breadcrumb + (on detail) a mobile back button. */
+/** Route-aware top bar: brand + breadcrumb + (on detail/logs) a mobile back button. */
 export function Topbar() {
   const detail = useMatch("/students/:studentId");
+  const logsPage = useMatch("/logs");
   const studentId = detail?.params.studentId;
 
   const studentsQuery = useStudents();
   const activeName =
     studentsQuery.data?.find((s) => s.id === studentId)?.name ?? "";
 
+  const showBackButton = studentId || logsPage;
+
   return (
     <header className="z-10 flex h-[60px] flex-shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4 md:px-6">
       <div className="flex min-w-0 items-center gap-3">
-        {studentId && (
+        {showBackButton && (
           <Link
             to="/"
             className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-lg border border-line bg-surface-muted text-muted transition hover:bg-brand-soft md:hidden"
@@ -64,7 +67,7 @@ export function Topbar() {
           <Chevron />
           <span className="text-faint">Counselor</span>
           <Chevron />
-          {studentId ? (
+          {studentId || logsPage ? (
             <Link to="/" className="font-medium text-muted transition hover:text-brand">
               Students
             </Link>
@@ -75,6 +78,12 @@ export function Topbar() {
             <>
               <Chevron />
               <span className="truncate font-semibold text-brand">{activeName}</span>
+            </>
+          )}
+          {logsPage && (
+            <>
+              <Chevron />
+              <span className="font-semibold text-brand">Logs</span>
             </>
           )}
         </nav>
