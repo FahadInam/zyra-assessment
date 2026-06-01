@@ -6,7 +6,6 @@ import { StatusPill } from "./Badges";
 interface Props {
   messages: Message[];
   initialMessage: Message;
-  studentName: string;
   onClose: () => void;
 }
 
@@ -21,7 +20,7 @@ const YouAvatar = ({ size = "h-8 w-8" }: { size?: string }) => (
   </div>
 );
 
-export function ChatView({ messages, initialMessage, studentName, onClose }: Props) {
+export function ChatView({ messages, initialMessage, onClose }: Props) {
   const [active, setActive] = useState<Message>(initialMessage);
   // Mobile two-level nav: 'conversation' shown first (user tapped a message).
   const [mobilePane, setMobilePane] = useState<"list" | "conversation">("conversation");
@@ -154,15 +153,6 @@ export function ChatView({ messages, initialMessage, studentName, onClose }: Pro
             </div>
           </div>
 
-          {/* Counselor placeholder */}
-          <div className="flex items-end justify-end gap-2.5">
-            <div className="max-w-[80%] rounded-2xl rounded-br-sm border border-dashed border-line-strong bg-surface-muted px-4 py-3 sm:max-w-[70%]">
-              <p className="text-[13.5px] italic text-faint">
-                Regarding <strong className="font-bold not-italic text-body">{studentName}</strong> — no reply sent yet.
-              </p>
-            </div>
-            <YouAvatar />
-          </div>
         </div>
 
         {/* Disabled input */}
