@@ -33,9 +33,28 @@ Open `server/.env` and replace the placeholder with your connection string. Add 
 ```
 MONGODB_URI=mongodb+srv://youruser:yourpassword@cluster0.xxxxx.mongodb.net/action-center?retryWrites=true&w=majority
 PORT=4000
+REDIS_URL=redis://localhost:6379
 ```
 
 The `.env` file is gitignored so it will never be committed or pushed.
+
+**Redis setup (optional but recommended)**
+
+Redis powers two things: roster caching and real-time task updates across browser tabs. The app works fully without it, you just won't get those two features.
+
+The easiest way to get Redis for free with no local install is [Upstash](https://upstash.com). Sign up, create a Redis database, go to the database page, and copy the connection string from the **ioredis** section. It looks like this:
+
+```
+rediss://default:yourtoken@your-region.upstash.io:6379
+```
+
+Put that as your `REDIS_URL` in `server/.env`. If you prefer to run Redis locally, use Docker:
+
+```bash
+docker run -d -p 6379:6379 redis:7
+```
+
+Or install it natively from [redis.io/download](https://redis.io/download). The local URL is just `redis://localhost:6379`.
 
 **Step 3: install and run**
 
@@ -154,6 +173,16 @@ The task status update is handled as an optimistic mutation, which is the right 
 
 Redux would have been significant overkill. The only shared client-side state in this app is the task filter chip selection, which is a single string. Zustand handles that in about 10 lines and costs nothing in bundle size or cognitive overhead.
 
+### Why Redis and what it improves
+
+Without Redis, every call to `GET /students` hits MongoDB, queries all three collections, runs aggregation across all students, and computes summaries from scratch. With 3 students it is fine. With 500 it becomes a noticeable delay, and if multiple counselors are using the app at the same time they are all hitting the database independently for the same data.
+
+Redis sits in front of MongoDB as a cache layer. The first request to `GET /students` runs the full MongoDB query, stores the result in Redis with a 60-second TTL, and returns it. Every subsequent request within that 60 seconds gets the answer directly from Redis in under a millisecond, without touching MongoDB at all. When a task status is updated, the cache key is deleted immediately so the next roster request is always fresh.
+
+The second reason for Redis is real-time updates via Server-Sent Events. When a counselor updates a task, any other counselor viewing that same student on a different tab or device should see the change without refreshing. Without Redis this would only work if both users happened to be connected to the same server process, which is not reliable and breaks entirely when you scale to multiple server instances. With Redis pub-sub, the server publishes an event to a Redis channel when a task changes, and all server instances subscribed to that channel forward it to their connected clients. It works across any number of server instances.
+
+The practical improvement is that the roster grid loads faster on repeat visits, the database gets fewer reads as the app scales, and the action center page reflects live changes automatically when multiple people are working at the same time.
+
 ### Folder structure
 
 **Backend (`server/src`)**
@@ -165,10 +194,13 @@ logger.ts             pino logger configuration
 db/
   connection.ts       Mongoose connect function
   lean.ts             helper to convert Mongoose lean docs (_id) to domain types (id)
+lib/
+  redis.ts            Redis clients (main + subscriber) and connectRedis()
 models/               Mongoose schemas for Student, Task, Message
 routes/               one file per endpoint group, thin HTTP layer only
+  events.ts           GET /events/:studentId — SSE endpoint for real-time updates
 services/
-  actionCenter.ts     all the actual logic: aggregation, urgency, sorting, task updates
+  actionCenter.ts     all the actual logic: aggregation, urgency, sorting, task updates, cache
 data/
   mockData.ts         the original mock data, completely unchanged
   seed.ts             idempotent seed + reseed functions
@@ -187,7 +219,7 @@ pages/
   StudentDetailPage.tsx  "/students/:id": action center for one student
 api/
   client.ts           typed fetch wrapper, every endpoint defined once
-hooks/                data hooks: useStudents, useActionCenter, useUpdateTaskStatus, useResetData
+hooks/                data hooks: useStudents, useActionCenter, useUpdateTaskStatus, useResetData, useSSE
 store/
   uiStore.ts          Zustand: task filter only (active student lives in the URL, not here)
 components/           one component per piece of UI
