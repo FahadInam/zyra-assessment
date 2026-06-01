@@ -5,6 +5,7 @@ import pinoHttp from "pino-http";
 import { logger } from "./logger.js";
 import actionCenterRoutes from "./routes/actionCenter.js";
 import adminRoutes from "./routes/admin.js";
+import logsRoutes from "./routes/logs.js";
 import studentRoutes from "./routes/students.js";
 import taskRoutes from "./routes/tasks.js";
 import { errorBody } from "./utils/http.js";
@@ -40,6 +41,7 @@ export function createApp() {
   app.use(actionCenterRoutes);
   app.use(taskRoutes);
   app.use(adminRoutes);
+  app.use(logsRoutes);
 
   // Unknown route → 404 (carries the request id so the client can report it).
   app.use((req: Request, res: Response) => {

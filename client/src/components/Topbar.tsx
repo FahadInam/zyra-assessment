@@ -1,4 +1,4 @@
-import { Link, useMatch } from "react-router-dom";
+import { Link, useMatch, useResolvedPath } from "react-router-dom";
 import { useStudents } from "../hooks/useStudents";
 
 const Chevron = () => (
@@ -6,6 +6,27 @@ const Chevron = () => (
     <path d="M8 5l5 5-5 5" />
   </svg>
 );
+
+function LogsLink() {
+  const resolved = useResolvedPath("/logs");
+  const isLogs = useMatch({ path: resolved.pathname });
+  return (
+    <Link
+      to="/logs"
+      className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold transition ${
+        isLogs
+          ? "border-brand bg-brand-soft text-brand-strong"
+          : "border-line bg-surface-muted text-muted hover:border-brand hover:text-brand"
+      }`}
+      title="View request logs"
+    >
+      <svg viewBox="0 0 20 20" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+        <path d="M4 5h12M4 10h12M4 15h7" />
+      </svg>
+      <span className="hidden sm:inline">Logs</span>
+    </Link>
+  );
+}
 
 /** Route-aware top bar: brand + breadcrumb + (on detail) a mobile back button. */
 export function Topbar() {
@@ -59,11 +80,14 @@ export function Topbar() {
         </nav>
       </div>
 
-      <div className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface-muted px-3 py-1.5 text-[12.5px] font-semibold text-muted">
-        <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
-          <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-        </svg>
-        <span className="hidden sm:inline">Counselor</span>
+      <div className="flex items-center gap-2">
+        <LogsLink />
+        <div className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line bg-surface-muted px-3 py-1.5 text-[12.5px] font-semibold text-muted">
+          <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
+            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+          </svg>
+          <span className="hidden sm:inline">Counselor</span>
+        </div>
       </div>
     </header>
   );

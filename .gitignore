@@ -6,6 +6,9 @@ dist/
 .env.local
 .env.*.local
 
+# Server log files — runtime output, not source code
+server/logs/
+
 # Dev guides — internal notes, not part of the submission
 BACKEND_EXPLAINED.md
 DEVELOPER_GUIDE.md

@@ -57,6 +57,28 @@ export function resetData(): Promise<{ ok: boolean }> {
   return request<{ ok: boolean }>("/reset", { method: "POST" });
 }
 
+export interface LogEntry {
+  level: number;
+  time: number;
+  msg: string;
+  reqId?: string;
+  req?: { method: string; url: string };
+  res?: { statusCode: number };
+  responseTime?: number;
+  err?: { message: string };
+  [key: string]: unknown;
+}
+
+export interface LogsResponse {
+  entries: LogEntry[];
+  total: number;
+  message?: string;
+}
+
+export function fetchLogs(limit = 100): Promise<LogsResponse> {
+  return request<LogsResponse>(`/logs?limit=${limit}`);
+}
+
 export function patchTaskStatus(
   taskId: string,
   status: TaskStatus,
