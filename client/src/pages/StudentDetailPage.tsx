@@ -7,6 +7,7 @@ import { StudentProfileSummary } from "../components/StudentProfileSummary";
 import { TaskList } from "../components/TaskList";
 import { UnreadMessages } from "../components/UnreadMessages";
 import { useActionCenter } from "../hooks/useActionCenter";
+import { useSSE } from "../hooks/useSSE";
 import { useUiStore } from "../store/uiStore";
 import type { Message } from "../types";
 
@@ -18,6 +19,7 @@ export function StudentDetailPage() {
 
   // Only mounts on this route, so the action-center query never runs on the grid.
   const query = useActionCenter(studentId);
+  useSSE(studentId);
 
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const openedChatRef = useRef(false);

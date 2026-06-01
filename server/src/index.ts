@@ -2,6 +2,7 @@ import "dotenv/config";
 import { createApp } from "./app.js";
 import { seedIfEmpty } from "./data/seed.js";
 import { connectDB } from "./db/connection.js";
+import { connectRedis } from "./lib/redis.js";
 import { logger } from "./logger.js";
 
 const PORT = Number(process.env.PORT) || 4000;
@@ -15,6 +16,7 @@ if (!MONGODB_URI) {
 async function start() {
   await connectDB(MONGODB_URI!);
   await seedIfEmpty();
+  await connectRedis();
 
   const app = createApp();
   app.listen(PORT, () => {

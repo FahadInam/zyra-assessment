@@ -24,6 +24,7 @@ export default defineConfig({
       "/tasks": API,
       "/reset": API,
       "/logs": API,
+      "/events": API,
     },
   },
 });
