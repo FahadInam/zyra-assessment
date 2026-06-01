@@ -1,4 +1,5 @@
 import { fromLean, type LeanDoc } from "../db/lean.js";
+import { redis } from "../lib/redis.js";
 import { MessageModel } from "../models/Message.js";
 import { StudentModel } from "../models/Student.js";
 import { TaskModel } from "../models/Task.js";
@@ -117,13 +118,25 @@ export async function getActionCenter(
   };
 }
 
+const ROSTER_CACHE_KEY = "roster";
+const ROSTER_TTL_SECONDS = 60;
+
 /**
  * Roster for the Students card grid: each student plus a compact summary
  * (open task count, unread messages, derived urgency, and the nearest deadline).
+ * Result is cached in Redis for 60 s — invalidated whenever a task is updated.
  */
 export async function getStudentRoster(
   today: Date = new Date(),
 ): Promise<StudentRosterEntry[]> {
+  // Try cache first
+  try {
+    const cached = await redis.get(ROSTER_CACHE_KEY);
+    if (cached) return JSON.parse(cached) as StudentRosterEntry[];
+  } catch {
+    // Redis unavailable — fall through to DB
+  }
+
   const [rawStudents, rawTasks, rawMessages] = await Promise.all([
     StudentModel.find().sort({ name: 1 }).lean(),
     TaskModel.find().lean(),
@@ -133,7 +146,7 @@ export async function getStudentRoster(
   const tasks = (rawTasks as unknown as LeanDoc<Task>[]).map(fromLean<Task>);
   const messages = (rawMessages as unknown as LeanDoc<Message>[]).map(fromLean<Message>);
 
-  return (rawStudents as unknown as LeanDoc<Student>[]).map((raw) => {
+  const result = (rawStudents as unknown as LeanDoc<Student>[]).map((raw) => {
     const student = fromLean<Student>(raw);
 
     const studentTasks: TaskWithMeta[] = tasks
@@ -160,6 +173,10 @@ export async function getStudentRoster(
       },
     };
   });
+
+  // Cache the result and return it (fire-and-forget cache write)
+  redis.setex(ROSTER_CACHE_KEY, ROSTER_TTL_SECONDS, JSON.stringify(result)).catch(() => {});
+  return result;
 }
 
 export async function updateTaskStatus(
@@ -173,5 +190,15 @@ export async function updateTaskStatus(
     { new: true, lean: true },
   );
   if (!updated) return null;
-  return fromLean<Task>(updated as unknown as LeanDoc<Task>);
+
+  const task = fromLean<Task>(updated as unknown as LeanDoc<Task>);
+
+  // Invalidate the roster cache and notify any connected SSE clients.
+  // Both are fire-and-forget — a Redis error must never fail the HTTP response.
+  redis.del(ROSTER_CACHE_KEY).catch(() => {});
+  redis
+    .publish(`student:${task.studentId}`, JSON.stringify({ type: "task_updated", taskId }))
+    .catch(() => {});
+
+  return task;
 }

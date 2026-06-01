@@ -23,6 +23,7 @@ export default defineConfig({
       },
       "/tasks": API,
       "/reset": API,
+      "/events": API,
     },
   },
 });

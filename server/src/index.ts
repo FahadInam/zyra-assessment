@@ -3,8 +3,10 @@ import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { connectDB } from "./db/connection.js";
 import { seedIfEmpty } from "./data/seed.js";
+import { connectRedis } from "./lib/redis.js";
 import actionCenterRoutes from "./routes/actionCenter.js";
 import adminRoutes from "./routes/admin.js";
+import eventsRoutes from "./routes/events.js";
 import studentRoutes from "./routes/students.js";
 import taskRoutes from "./routes/tasks.js";
 import { errorBody } from "./utils/http.js";
@@ -26,6 +28,7 @@ app.use(studentRoutes);
 app.use(actionCenterRoutes);
 app.use(taskRoutes);
 app.use(adminRoutes);
+app.use(eventsRoutes);
 
 app.use((_req, res) => {
   res.status(404).json(errorBody("NOT_FOUND", "Route not found."));
@@ -42,6 +45,7 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 async function start() {
   await connectDB(MONGODB_URI!);
   await seedIfEmpty();
+  await connectRedis(); // optional — app works without Redis
   app.listen(PORT, () => {
     console.log(`Action Center API running on http://localhost:${PORT}`);
   });

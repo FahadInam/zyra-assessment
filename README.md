@@ -33,9 +33,12 @@ Open `server/.env` and replace the placeholder with your connection string. Add 
 ```
 MONGODB_URI=mongodb+srv://youruser:yourpassword@cluster0.xxxxx.mongodb.net/action-center?retryWrites=true&w=majority
 PORT=4000
+REDIS_URL=redis://localhost:6379
 ```
 
 The `.env` file is gitignored so it will never be committed or pushed.
+
+Redis is optional. If it is not running the app still works fully — you just won't get roster caching or real-time task updates. To run Redis locally you can use Docker: `docker run -p 6379:6379 redis:7` or install it directly from [redis.io](https://redis.io/download).
 
 **Step 3: install and run**
 
