@@ -47,7 +47,6 @@ export function StudentDetailPage() {
         <ChatView
           messages={query.data.messages}
           initialMessage={selectedMessage}
-          studentName={query.data.student.name}
           onClose={() => setSelectedMessage(null)}
         />
       </main>
