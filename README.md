@@ -236,7 +236,7 @@ api/
   client.ts           typed fetch wrapper, every endpoint defined once
 hooks/                data hooks: useStudents, useActionCenter, useUpdateTaskStatus, useResetData, useSSE
 store/
-  uiStore.ts          Zustand: task filter only (active student lives in the URL, not here)
+  uiStore.ts          Zustand store — currently a placeholder; task filter was moved to local component state
 components/           one component per piece of UI
 styles/
   index.css           Tailwind entry point + all design tokens
