@@ -40,8 +40,6 @@ PORT=4000
 REDIS_URL=redis://localhost:6379
 ```
 
-The `.env` file is gitignored so it will never be committed or pushed.
-
 **Redis setup (optional but recommended)**
 
 Redis powers two things: roster caching and real-time task updates across browser tabs. The app works fully without it, you just won't get those two features.
