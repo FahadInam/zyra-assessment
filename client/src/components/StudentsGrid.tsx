@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useResetData } from "../hooks/useResetData";
+import { useUiStore } from "../store/uiStore";
 import type { StudentRosterEntry, Urgency } from "../types";
 import { StudentCard } from "./StudentCard";
 import { StudentsTable } from "./StudentsTable";
@@ -23,8 +24,10 @@ const SORTS: { key: SortKey; label: string }[] = [
 
 export function StudentsGrid({ students, isLoading, onOpen, onMessage }: Props) {
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<SortKey>("name");
-  const [mode, setMode] = useState<"cards" | "table">("cards");
+  const mode = useUiStore((s) => s.gridMode);
+  const setMode = useUiStore((s) => s.setGridMode);
+  const sort = useUiStore((s) => s.gridSort) as SortKey;
+  const setSort = useUiStore((s) => s.setGridSort);
   const reset = useResetData();
 
   const handleReset = () => {

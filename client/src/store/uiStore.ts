@@ -1,6 +1,22 @@
-// uiStore is intentionally minimal.
-// taskFilter was moved to local state inside TaskList so it resets
-// automatically when navigating between students.
-//
-// Keep this file as a placeholder — add shared UI state here if needed.
-export {};
+import { create } from "zustand";
+
+type GridMode = "cards" | "table";
+type GridSort = "name" | "grade" | "gpa" | "urgency";
+
+interface UiState {
+  /** Persists the student grid view mode across navigation. */
+  gridMode: GridMode;
+  setGridMode: (mode: GridMode) => void;
+
+  /** Persists the student grid sort preference across navigation. */
+  gridSort: GridSort;
+  setGridSort: (sort: GridSort) => void;
+}
+
+export const useUiStore = create<UiState>((set) => ({
+  gridMode: "cards",
+  setGridMode: (gridMode) => set({ gridMode }),
+
+  gridSort: "name",
+  setGridSort: (gridSort) => set({ gridSort }),
+}));
