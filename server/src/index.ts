@@ -15,12 +15,30 @@ const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
+// Allowed origins: the deployed Amplify frontend + local dev.
+// Add ALLOWED_ORIGIN to server/.env to override (e.g. a custom domain).
+const ALLOWED_ORIGINS = [
+  process.env.ALLOWED_ORIGIN,
+  "https://main.d25fi4uc6c5s2h.amplifyapp.com",
+  "http://localhost:5173",
+].filter(Boolean) as string[];
+
 if (!MONGODB_URI) {
   console.error("MONGODB_URI is not set. Add it to server/.env and restart.");
   process.exit(1);
 }
 
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (server-to-server, curl, Postman)
+      if (!origin) return callback(null, true);
+      if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
