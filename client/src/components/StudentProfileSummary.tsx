@@ -24,18 +24,15 @@ export function StudentProfileSummary({ student, urgency }: Props) {
           rounded="rounded-2xl"
           className="border-[3px] border-white shadow-card"
         />
-        <div className="min-w-0">
-          <h2 className="truncate text-xl tracking-tight">{student.name}</h2>
-          <div className="truncate text-[12.5px] text-muted">{student.email}</div>
-          <div className="mt-1.5 flex items-center gap-1.5" title="Enrollment status from the student record (not derived from tasks)">
-            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-faint">
-              Enrollment
-            </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="truncate text-xl tracking-tight">{student.name}</h2>
             <StatusPill
               label={ENROLLMENT_LABELS[student.enrollmentStatus]}
               tone={student.enrollmentStatus === "at_risk" ? "urgent" : "positive"}
             />
           </div>
+          <div className="truncate text-[12.5px] text-muted">{student.email}</div>
         </div>
       </div>
 

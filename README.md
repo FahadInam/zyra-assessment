@@ -10,7 +10,7 @@ Frontend: React, TypeScript, Vite, Tailwind CSS v4, TanStack React Query, Zustan
 
 Backend: Node.js, Express, TypeScript, MongoDB, Mongoose
 
-The design is based on [Zyra's counselor dashboard](https://www.zyra-ai.com/partner/counselors).
+Design inspired by [Zyra's counselor platform](https://www.zyra-ai.com/partner/counselors).
 
 ## Getting it running
 
