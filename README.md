@@ -1,5 +1,7 @@
 # Counselor Student Action Center
 
+**Live demo:** https://main.d25fi4uc6c5s2h.amplifyapp.com
+
 A full-stack feature built for school counselors. You land on a card grid showing all your students with their urgency level, open task count, and nearest deadline. Click one to open their full action center: profile, tasks you can update inline, unread messages, and a chat view when you open a message. The layout is fully responsive from mobile up to desktop.
 
 **Stack**
