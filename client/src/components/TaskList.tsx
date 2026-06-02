@@ -42,7 +42,6 @@ export function TaskList({ studentId, tasks, summary }: Props) {
   return (
     <section
       className="animate-rise rounded-card border border-line bg-surface p-5 shadow-card sm:p-6"
-      style={{ animationDelay: "140ms" }}
     >
       <div className="mb-1 flex flex-wrap items-baseline justify-between gap-3">
         <div>

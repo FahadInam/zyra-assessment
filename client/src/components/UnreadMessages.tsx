@@ -11,7 +11,6 @@ export function UnreadMessages({ messages, unreadCount, onMessageClick }: Props)
   return (
     <section
       className="animate-rise rounded-card border border-line bg-surface p-5 shadow-card"
-      style={{ animationDelay: "80ms" }}
     >
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-[15px]">Messages</h3>
