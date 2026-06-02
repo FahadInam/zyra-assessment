@@ -11,11 +11,13 @@ import { actionCenterKey } from "./useActionCenter";
  * The connection is opened when the component mounts and closed when
  * it unmounts (i.e. when the counselor navigates away from the page).
  */
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
 export function useSSE(studentId: string) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const es = new EventSource(`/events/${studentId}`);
+    const es = new EventSource(`${BASE_URL}/events/${studentId}`);
 
     es.onmessage = (event) => {
       try {
