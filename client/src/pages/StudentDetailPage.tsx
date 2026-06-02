@@ -8,14 +8,12 @@ import { TaskList } from "../components/TaskList";
 import { UnreadMessages } from "../components/UnreadMessages";
 import { useActionCenter } from "../hooks/useActionCenter";
 import { useSSE } from "../hooks/useSSE";
-import { useUiStore } from "../store/uiStore";
 import type { Message } from "../types";
 
 export function StudentDetailPage() {
   const { studentId = "" } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const setTaskFilter = useUiStore((s) => s.setTaskFilter);
 
   // Only mounts on this route, so the action-center query never runs on the grid.
   const query = useActionCenter(studentId);
@@ -24,12 +22,11 @@ export function StudentDetailPage() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const openedChatRef = useRef(false);
 
-  // Reset transient state whenever the student in the URL changes.
+  // Reset message state when navigating between students.
   useEffect(() => {
-    setTaskFilter("all");
     setSelectedMessage(null);
     openedChatRef.current = false;
-  }, [studentId, setTaskFilter]);
+  }, [studentId]);
 
   // Arrived via a card's "Message" button → open the newest message once, then
   // clear the navigation flag so a refetch doesn't reopen it.

@@ -1,15 +1,6 @@
-import { create } from "zustand";
-import type { TaskStatus } from "../types";
-
-export type TaskFilter = "all" | "open" | TaskStatus;
-
-interface UiState {
-  /** Task list filter chip selection (shared between the chips and the list). */
-  taskFilter: TaskFilter;
-  setTaskFilter: (filter: TaskFilter) => void;
-}
-
-export const useUiStore = create<UiState>((set) => ({
-  taskFilter: "all",
-  setTaskFilter: (filter) => set({ taskFilter: filter }),
-}));
+// uiStore is intentionally minimal.
+// taskFilter was moved to local state inside TaskList so it resets
+// automatically when navigating between students.
+//
+// Keep this file as a placeholder — add shared UI state here if needed.
+export {};

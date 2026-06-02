@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
-import { useUiStore, type TaskFilter } from "../store/uiStore";
 import type { Task, TaskStatus, TaskSummary } from "../types";
 import { TaskItem } from "./TaskItem";
+
+type TaskFilter = "all" | "open" | "todo" | "in_progress" | "completed";
 
 interface Props {
   studentId: string;
@@ -24,8 +26,8 @@ function matchesFilter(task: Task, filter: TaskFilter): boolean {
 }
 
 export function TaskList({ studentId, tasks, summary }: Props) {
-  const filter = useUiStore((s) => s.taskFilter);
-  const setFilter = useUiStore((s) => s.setTaskFilter);
+  // Local state — resets to "all" automatically every time a new student is opened.
+  const [filter, setFilter] = useState<TaskFilter>("all");
   const mutation = useUpdateTaskStatus(studentId);
 
   const visible = tasks.filter((t) => matchesFilter(t, filter));
@@ -73,9 +75,7 @@ export function TaskList({ studentId, tasks, summary }: Props) {
               onClick={() => setFilter(f.key)}
             >
               {f.label}
-              <span
-                className={`ml-1 ${active ? "text-white/70" : "text-faint"}`}
-              >
+              <span className={`ml-1 ${active ? "text-white/70" : "text-faint"}`}>
                 {f.count(summary)}
               </span>
             </button>
